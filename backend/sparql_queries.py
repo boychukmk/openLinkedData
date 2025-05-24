@@ -11,18 +11,18 @@ def get_diseases_from_wikidata():
                SELECT DISTINCT ?disease ?diseaseLabel ?description ?icd10 ?subclassOfLabel 
            ?causeLabel ?fatalityRate ?diagnosticMethodLabel ?treatmentLabel ?symptomLabel 
            ?relatedGeneLabel WHERE {
-          ?disease wdt:P31 wd:Q12136.  # Объект является заболеванием
+          ?disease wdt:P31 wd:Q12136.  
           
-          # Фильтруем только те заболевания, у которых есть симптомы
+         
           ?disease wdt:P780 ?symptom.
           ?disease wdt:P2176 ?treatment.
           ?disease wdt:P828 ?cause.
-          OPTIONAL { ?disease wdt:P1995 ?icd10. }  # Код ICD-10
-          OPTIONAL { ?disease wdt:P279 ?subclassOf. }  # Подкласс заболевания
-          OPTIONAL { ?disease wdt:P828 ?cause. }  # Причина заболевания
-          OPTIONAL { ?disease wdt:P1193 ?fatalityRate. }  # Уровень смертности
-          OPTIONAL { ?disease wdt:P2176 ?treatment. }  # Лечение
-          OPTIONAL { ?disease schema:description ?description. FILTER (LANG(?description) = "en") } # Описание на английском
+          OPTIONAL { ?disease wdt:P1995 ?icd10. } 
+          OPTIONAL { ?disease wdt:P279 ?subclassOf. }  
+          OPTIONAL { ?disease wdt:P828 ?cause. }  
+          OPTIONAL { ?disease wdt:P1193 ?fatalityRate. }  
+          OPTIONAL { ?disease wdt:P2176 ?treatment. }  
+          OPTIONAL { ?disease schema:description ?description. FILTER (LANG(?description) = "en") }
         
           SERVICE wikibase:label { 
             bd:serviceParam wikibase:language "en".  
@@ -51,7 +51,7 @@ def get_diseases_from_wikidata():
     diseases_dict = {}
 
     for item in data["results"]["bindings"]:
-        disease_id = item["disease"]["value"].split("/")[-1]  # Извлекаем QID
+        disease_id = item["disease"]["value"].split("/")[-1]
         disease_url = f"https://www.wikidata.org/wiki/{disease_id}"  # Генерируем ссылку
 
         disease_name = item["diseaseLabel"]["value"]
@@ -59,7 +59,7 @@ def get_diseases_from_wikidata():
         if disease_name not in diseases_dict:
             diseases_dict[disease_name] = {
                 "id": disease_id,
-                "name": disease_name,
+                "name": disease_name.lower(),
                 "url": disease_url,
                 "description": item.get("description", {}).get("value", "No description available"),
                 "icd10": item.get("icd10", {}).get("value", "N/A"),
