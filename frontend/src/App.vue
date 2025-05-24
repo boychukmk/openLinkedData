@@ -1,7 +1,7 @@
 <template>
   <div>
     <nav class="navbar">
-      <router-link to="/">Home</router-link>
+      <router-link to="/">Diseases</router-link>
       <router-link to="/chat">Chat</router-link>
       <router-link to="/hospitals">Hospitals</router-link>
       <router-link to="/drug-disease-graph">Drug Graph</router-link>

@@ -80,7 +80,7 @@ export default {
 }
 
 .title {
-  padding-top: 40px;
+  padding-top: 100px;
   font-size: 50px;
   color: var(--text-primary);
   font-weight: 700;
