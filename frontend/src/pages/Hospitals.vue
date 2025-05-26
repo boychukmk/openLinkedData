@@ -1,7 +1,7 @@
 <template>
-  <div class="container">
-    <div class="sidebar">
-      <h1 class="fixed-header">Hospitals List</h1>
+  <div class="page-container">
+    <div class="sidebar glass fade-in-left">
+      <h2 class="section-title">🏥 Hospitals List</h2>
       <div class="search-container">
         <label for="country">Select a country:</label>
         <div class="custom-select">
@@ -37,9 +37,10 @@
         </table>
       </div>
     </div>
-    <div class="map-wrapper">
-      <h1 class="fixed-header">Hospitals Map</h1>
-      <div class="map-container" :class="{ 'fullscreen': isFullscreen }">
+
+    <div class="map-wrapper fade-in-right">
+      <h2 class="section-title">🗺️ Hospitals Map</h2>
+      <div class="map-container">
         <div id="map"></div>
         <button class="fullscreen-btn" @click="toggleFullscreen">
           {{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}
@@ -53,11 +54,12 @@
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+
 export default {
   data() {
     return {
       map: null,
-      selectedCountryCode: "Q212", // Default Ukraine
+      selectedCountryCode: "Q212",
       hospitals: [],
       isFullscreen: false,
       countries: {
@@ -78,8 +80,10 @@ export default {
   },
   computed: {
     selectedCountry() {
-      return Object.keys(this.countries).find(key => this.countries[key] === this.selectedCountryCode);
-    }
+      return Object.keys(this.countries).find(
+        (key) => this.countries[key] === this.selectedCountryCode
+      );
+    },
   },
   async mounted() {
     this.map = L.map("map").setView([48.3794, 31.1656], 5);
@@ -90,191 +94,283 @@ export default {
   },
   methods: {
     async loadHospitals() {
-  const url = `http://127.0.0.1:8000/api/hospitals?country=${this.selectedCountryCode}`;
-  const response = await fetch(url);
-  this.hospitals = await response.json();
+      const url = `http://127.0.0.1:8000/api/hospitals?country=${this.selectedCountryCode}`;
+      const response = await fetch(url);
+      this.hospitals = await response.json();
 
-  // Удаляем старые маркеры
-  this.map.eachLayer(layer => {
-    if (layer instanceof L.Marker) {
-      this.map.removeLayer(layer);
-    }
-  });
+      this.map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+          this.map.removeLayer(layer);
+        }
+      });
 
-  this.hospitals.forEach(hospital => {
-    const { name, latitude, longitude, address, wikidata_url, website, image } = hospital;
+      this.hospitals.forEach((hospital) => {
+        const { name, latitude, longitude, address, wikidata_url, website, image } = hospital;
 
-    let popupContent = `<b>${name}</b><br>`;
+        let popupContent = `<b>${name}</b><br>`;
+        if (image) {
+          popupContent += `<img src="${image}" alt="${name}" style="max-width: 200px; max-height: 150px; display: block; margin: 5px auto;"><br>`;
+        }
+        popupContent += `<strong>Address:</strong> ${address}<br>`;
+        popupContent += `<a href="${wikidata_url}" target="_blank">Wikidata</a><br>`;
+        if (website) {
+          popupContent += `<a href="${website}" target="_blank">Official Website</a><br>`;
+        }
 
-    if (image) {
-      popupContent += `<img src="${image}" alt="${name}" style="max-width: 200px; max-height: 150px; display: block; margin: 5px auto;"><br>`;
-    }
+        L.marker([latitude, longitude])
+          .addTo(this.map)
+          .bindPopup(popupContent);
+      });
 
-    popupContent += `<strong>Address:</strong> ${address}<br>`;
-    popupContent += `<a href="${wikidata_url}" target="_blank">Wikidata</a><br>`;
-
-    if (website) {
-      popupContent += `<a href="${website}" target="_blank">Official Website</a><br>`;
-    }
-
-    L.marker([latitude, longitude])
-      .addTo(this.map)
-      .bindPopup(popupContent);
-  });
-
-  if (this.hospitals.length > 0) {
-    const bounds = this.hospitals.map(h => [h.latitude, h.longitude]);
-    this.map.fitBounds(bounds);
-  }
-}
-,
+      if (this.hospitals.length > 0) {
+        const bounds = this.hospitals.map((h) => [h.latitude, h.longitude]);
+        this.map.fitBounds(bounds);
+      }
+    },
     toggleFullscreen() {
       this.isFullscreen = !this.isFullscreen;
-    }
-  }
+      const container = document.querySelector(".map-container");
+      container.classList.toggle("fullscreen");
+    },
+  },
 };
 </script>
 
-<style scoped>
-.container {
-  display: flex;
-  height: 100vh;
-  gap: 20px;
-  padding: 60px 15px 15px 15px;
-  background: #1a1a2e;
+<style>
+:root[data-theme="light"] {
+  --bg-gradient-from: #dfefff;
+  --bg-gradient-to: #eaf8f2;
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --text-color: #2a4365;
+  --header-bg: #bee3f8;
+  --row-even: rgba(236, 245, 255, 0.75);
+  --link-color: #3182ce;
+  --map-btn-bg: #4299e1;
+  --map-btn-hover: #2b6cb0;
+  --table-bg: rgba(255, 255, 255, 0.88);
 }
 
-/* === Стили выбора страны === */
-.search-container {
-  margin-bottom: 15px; /* Добавляет пространство между выбором страны и таблицей */
+:root[data-theme="dark"] {
+  --bg-gradient-from: #12343b;
+  --bg-gradient-to: #0f292d;
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --text-color: #e2e8f0;
+  --header-bg: #2b6cb0;
+  --row-even: rgba(255, 255, 255, 0.05);
+  --link-color: #63b3ed;
+  --map-btn-bg: #2b6cb0;
+  --map-btn-hover: #1a4a72;
+  --table-bg: rgba(18, 52, 59, 0.7);
+}
+
+/* Загальний контейнер */
+.page-container {
+  padding-top: 100px;
+  display: flex;
+  height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(to bottom right, var(--bg-gradient-from), var(--bg-gradient-to));
+  color: var(--text-color);
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 45%;
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Заголовки */
+.section-title {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-color);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Glassmorphism */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border-radius: 20px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  transition: all 0.4s ease-in-out;
+}
+
+/* Пошук і фільтр */
+.search-container label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 6px;
 }
 
 .custom-select {
   position: relative;
-  display: inline-block;
   width: 100%;
 }
 
-.custom-select select {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  background: #222;
-  color: white;
-  border: none;
-  border-radius: 5px;
+select {
   appearance: none;
+  width: 100%;
+  padding: 10px 40px 10px 14px;
+  border: 1px solid #cbd5e0;
+  border-radius: 10px;
+  background-color: #edf2f7;
+  font-size: 16px;
+  color: #2d3748;
+  font-weight: 500;
   cursor: pointer;
+  transition: 0.3s ease;
 }
-
-.custom-select .arrow {
+select:hover {
+  background-color: #e2e8f0;
+}
+.arrow {
   position: absolute;
-  right: 10px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: white;
   pointer-events: none;
+  color: #4a5568;
+  font-size: 14px;
 }
 
-/* === Стили боковой панели === */
-.sidebar {
-  width: 35%;
-  padding: 0 15px 15px 15px;
-  color: white;
-  overflow: hidden;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-}
-
-.fixed-header {
-  text-align: center;
-  color: #ff9800;
-  margin-bottom: 20px;
-  font-size:30px;
-}
-
-/* === Таблица === */
+/* Таблиця */
 .table-container {
-  max-height: calc(100vh - 250px); /* Учитывает отступ от заголовка */
+  max-height: 65vh;
   overflow-y: auto;
-  overflow-x: hidden; /* Убирает горизонтальный скролл */
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 table {
-  table-layout: fixed;
   width: 100%;
   border-collapse: collapse;
-  background: #333;
-  border-radius: 5px;
+  background: var(--table-bg);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 th, td {
-  padding: 12px;
+  padding: 14px 18px;
   text-align: left;
-  color: white;
-  word-wrap: break-word; /* Обеспечивает перенос слов внутри ячеек */
-  overflow-wrap: break-word;
+  font-size: 15px;
+  color: var(--text-color);
 }
 
 th {
-  background: #ff9800;
+  background: var(--header-bg);
+  font-weight: 700;
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 1;
 }
 
 tr:nth-child(even) {
-  background: #444;
+  background: var(--row-even);
 }
 
-/* === Карта === */
+/* Посилання */
+a {
+  color: var(--link-color);
+  font-weight: bold;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Мапа */
 .map-wrapper {
-  flex-grow: 1;
+  width: 55%;
+  position: relative;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
 .map-container {
-  width: 90%;
-  height: 500px;
-  border-radius: 15px;
+  flex-grow: 1;
+  border-radius: 18px;
   overflow: hidden;
-  background: #222;
   position: relative;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
 }
 
 #map {
-  width: 100%;
   height: 100%;
-  border-radius: 15px;
+  width: 100%;
+  border-radius: 18px;
+  z-index: 1;
 }
 
-/* === Кнопка полноэкранного режима === */
+/* Повноекранна кнопка */
 .fullscreen-btn {
   position: absolute;
-  bottom: 20px;
-  right: 25px;
-  padding: 12px 20px;
-  background: #ff9800;
+  bottom: 16px;
+  right: 16px;
+  z-index: 999;
+  background: var(--map-btn-bg);
   color: white;
   border: none;
+  padding: 10px 18px;
+  border-radius: 14px;
   cursor: pointer;
-  border-radius: 5px;
-  font-size: 16px;
-  z-index: 1000; /* Убедимся, что кнопка остаётся поверх карты */
+  font-weight: bold;
+  font-size: 14px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.fullscreen-btn:hover {
+  background: var(--map-btn-hover);
+  transform: scale(1.05);
 }
 
-.fullscreen {
+.map-container.fullscreen {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 90vw;
-  height: 90vh;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  height: 100vh !important;
+  width: 100vw !important;
   z-index: 1000;
-  border-radius: 15px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
 }
 
+/* Анімації */
+.fade-in-left {
+  animation: fadeInLeft 0.6s ease-out;
+}
+.fade-in-right {
+  animation: fadeInRight 0.6s ease-out;
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
 </style>
+
+
